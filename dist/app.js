@@ -1,4 +1,50 @@
 "use strict";
+function validate(validatableInput) {
+    let isValid = true;
+    if (validatableInput.req) {
+        isValid == isValid && validatableInput.value.toString().trim().length !== 0;
+    }
+    if (validatableInput.minLength != null &&
+        typeof validatableInput.value === 'string') {
+        isValid =
+            isValid && validatableInput.value.length > validatableInput.minLength;
+    }
+    if (validatableInput.maxLength != null &&
+        typeof validatableInput.value === 'string') {
+        isValid =
+            isValid && validatableInput.value.length < validatableInput.maxLength;
+    }
+    if (validatableInput.min != null &&
+        typeof validatableInput.min === 'number') {
+        isValid = isValid && validatableInput.value > validatableInput.min;
+    }
+    if (validatableInput.max != null &&
+        typeof validatableInput.max === 'number') {
+        isValid = isValid && validatableInput.value < validatableInput.max;
+    }
+    return isValid;
+}
+class ProjectList {
+    constructor(type) {
+        this.type = type;
+        this.templateElement = document.getElementById('project-list');
+        this.hostElement = document.getElementById('app');
+        const importedNote = document.importNode(this.templateElement.content, true);
+        this.element = importedNote.firstElementChild;
+        this.element.id = `${this.type}-projects`;
+        this.attach();
+        this.renderContent();
+    }
+    renderContent() {
+        const listId = `${this.type}-projects-list`;
+        this.element.querySelector('ul').id = listId;
+        this.element.querySelector('h2').textContent =
+            this.type.toUpperCase() + ' PROJECTS';
+    }
+    attach() {
+        this.hostElement.insertAdjacentElement('beforeend', this.element);
+    }
+}
 class ProjectInput {
     constructor() {
         this.templateElement = document.getElementById('project-input');
@@ -16,10 +62,25 @@ class ProjectInput {
         const enteredTitle = this.titleInputElement.value;
         const enteredDesc = this.descInputElement.value;
         const enteredPeople = this.peopleInputElement.value;
-        if (enteredTitle.trim().length === 0 ||
-            enteredDesc.trim().length === 0 ||
-            enteredPeople.trim().length === 0) {
-            alert('Invalid input, try again');
+        const titleValidatable = {
+            value: enteredTitle,
+            req: true,
+        };
+        const descValidatable = {
+            value: enteredDesc,
+            req: true,
+            minLength: 2,
+        };
+        const peopleValidatable = {
+            value: +enteredPeople,
+            req: true,
+            min: 1,
+            max: 5,
+        };
+        if (!validate(titleValidatable) ||
+            !validate(descValidatable) ||
+            !validate(peopleValidatable)) {
+            alert('Invalid input, pleasy try again');
             return;
         }
         else {
@@ -49,4 +110,6 @@ class ProjectInput {
     }
 }
 const projectInput = new ProjectInput();
+const activeProjectList = new ProjectList('active');
+const finishedProjectList = new ProjectList('finished');
 //# sourceMappingURL=app.js.map
