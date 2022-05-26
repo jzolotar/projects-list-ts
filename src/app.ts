@@ -107,6 +107,7 @@ class ProjectList {
   hostElement: HTMLDivElement;
   element: HTMLElement;
   assignedProject: Project[];
+  //private type
 
   constructor(private type: 'active' | 'finished') {
     console.log('creating projectList');
@@ -125,7 +126,13 @@ class ProjectList {
     this.element.id = `${this.type}-projects`;
 
     projectManager.addListener((projects: Project[]) => {
-      this.assignedProject = projects;
+      const newProjects = projects.filter((project) => {
+        if (this.type === 'active') {
+          return project.status === ProjectStatus.Active;
+        }
+        return project.status === ProjectStatus.Finished;
+      });
+      this.assignedProject = newProjects;
       this.renderProjects();
     });
 

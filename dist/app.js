@@ -73,7 +73,13 @@ class ProjectList {
         this.element = importedNote.firstElementChild;
         this.element.id = `${this.type}-projects`;
         projectManager.addListener((projects) => {
-            this.assignedProject = projects;
+            const newProjects = projects.filter((project) => {
+                if (this.type === 'active') {
+                    return project.status === ProjectStatus.Active;
+                }
+                return project.status === ProjectStatus.Finished;
+            });
+            this.assignedProject = newProjects;
             this.renderProjects();
         });
         this.attach();
