@@ -1,5 +1,41 @@
-//Validation
+//Project state managmenet
 
+class ProjectManager {
+  private listeners: any[] = []; // need 2 listeners, one for active and fnished projects
+  private projects: any[] = [];
+  private static instance: ProjectManager;
+  private constructor() {}
+
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+    this.instance = new ProjectManager();
+    return this.instance;
+  }
+
+  addListener(listenerFn: Function) {
+    this.listeners.push(listenerFn);
+  }
+
+  addProject(title: string, desc: string, peopleNum: number) {
+    const newProject = {
+      id: Math.random().toString(),
+      title,
+      desc,
+      peopleNum,
+    };
+    this.projects.push(newProject);
+    for (const listenerFn of this.listeners) {
+      listenerFn(this.projects.slice());
+    }
+  }
+}
+
+//using singleton to have only 1 instance of project manager to manage app state
+const projectManager = ProjectManager.getInstance();
+
+//Validation
 interface Validatable {
   value: string | number;
   req?: boolean;
@@ -36,14 +72,14 @@ function validate(validatableInput: Validatable) {
     validatableInput.min != null &&
     typeof validatableInput.min === 'number'
   ) {
-    isValid = isValid && validatableInput.value > validatableInput.min;
+    isValid = isValid && validatableInput.value >= validatableInput.min;
   }
 
   if (
     validatableInput.max != null &&
     typeof validatableInput.max === 'number'
   ) {
-    isValid = isValid && validatableInput.value < validatableInput.max;
+    isValid = isValid && validatableInput.value <= validatableInput.max;
   }
   return isValid;
 }
@@ -52,21 +88,43 @@ class ProjectList {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
+  assignedProject: any[];
 
   constructor(private type: 'active' | 'finished') {
+    console.log('creating projectList');
     this.templateElement = document.getElementById(
       'project-list'
     )! as HTMLTemplateElement;
     this.hostElement = document.getElementById('app')! as HTMLDivElement;
+    this.assignedProject = [];
 
     const importedNote = document.importNode(
       this.templateElement.content,
       true
     );
+
     this.element = importedNote.firstElementChild as HTMLElement;
     this.element.id = `${this.type}-projects`;
+
+    projectManager.addListener((projects: any[]) => {
+      this.assignedProject = projects;
+      this.renderProjects();
+    });
+
     this.attach();
     this.renderContent();
+  }
+
+  private renderProjects() {
+    const listEl = document.getElementById(
+      `${this.type}-projects-list`
+    ) as HTMLUListElement;
+
+    for (const projectItem of this.assignedProject) {
+      const listItem = document.createElement('li');
+      listItem.textContent = projectItem.title;
+      listEl?.appendChild(listItem);
+    }
   }
 
   private renderContent() {
@@ -152,12 +210,11 @@ class ProjectInput {
 
   private submitHandler(event: Event) {
     event.preventDefault();
-    console.log(this.titleInputElement.value);
     const userInput = this.gatherUserInput();
 
     if (Array.isArray(userInput)) {
       const [title, desc, people] = userInput;
-      console.log(title, desc, people);
+      projectManager.addProject(title, desc, people);
       this.clearForm();
     }
   }

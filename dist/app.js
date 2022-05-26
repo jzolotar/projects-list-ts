@@ -1,4 +1,33 @@
 "use strict";
+class ProjectManager {
+    constructor() {
+        this.listeners = [];
+        this.projects = [];
+    }
+    static getInstance() {
+        if (this.instance) {
+            return this.instance;
+        }
+        this.instance = new ProjectManager();
+        return this.instance;
+    }
+    addListener(listenerFn) {
+        this.listeners.push(listenerFn);
+    }
+    addProject(title, desc, peopleNum) {
+        const newProject = {
+            id: Math.random().toString(),
+            title,
+            desc,
+            peopleNum,
+        };
+        this.projects.push(newProject);
+        for (const listenerFn of this.listeners) {
+            listenerFn(this.projects.slice());
+        }
+    }
+}
+const projectManager = ProjectManager.getInstance();
 function validate(validatableInput) {
     let isValid = true;
     if (validatableInput.req) {
@@ -16,24 +45,38 @@ function validate(validatableInput) {
     }
     if (validatableInput.min != null &&
         typeof validatableInput.min === 'number') {
-        isValid = isValid && validatableInput.value > validatableInput.min;
+        isValid = isValid && validatableInput.value >= validatableInput.min;
     }
     if (validatableInput.max != null &&
         typeof validatableInput.max === 'number') {
-        isValid = isValid && validatableInput.value < validatableInput.max;
+        isValid = isValid && validatableInput.value <= validatableInput.max;
     }
     return isValid;
 }
 class ProjectList {
     constructor(type) {
         this.type = type;
+        console.log('creating projectList');
         this.templateElement = document.getElementById('project-list');
         this.hostElement = document.getElementById('app');
+        this.assignedProject = [];
         const importedNote = document.importNode(this.templateElement.content, true);
         this.element = importedNote.firstElementChild;
         this.element.id = `${this.type}-projects`;
+        projectManager.addListener((projects) => {
+            this.assignedProject = projects;
+            this.renderProjects();
+        });
         this.attach();
         this.renderContent();
+    }
+    renderProjects() {
+        const listEl = document.getElementById(`${this.type}-projects-list`);
+        for (const projectItem of this.assignedProject) {
+            const listItem = document.createElement('li');
+            listItem.textContent = projectItem.title;
+            listEl === null || listEl === void 0 ? void 0 : listEl.appendChild(listItem);
+        }
     }
     renderContent() {
         const listId = `${this.type}-projects-list`;
@@ -89,11 +132,10 @@ class ProjectInput {
     }
     submitHandler(event) {
         event.preventDefault();
-        console.log(this.titleInputElement.value);
         const userInput = this.gatherUserInput();
         if (Array.isArray(userInput)) {
             const [title, desc, people] = userInput;
-            console.log(title, desc, people);
+            projectManager.addProject(title, desc, people);
             this.clearForm();
         }
     }
