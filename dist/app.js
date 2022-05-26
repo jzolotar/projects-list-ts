@@ -1,4 +1,18 @@
 "use strict";
+var ProjectStatus;
+(function (ProjectStatus) {
+    ProjectStatus[ProjectStatus["Active"] = 0] = "Active";
+    ProjectStatus[ProjectStatus["Finished"] = 1] = "Finished";
+})(ProjectStatus || (ProjectStatus = {}));
+class Project {
+    constructor(id, title, desc, people, status) {
+        this.id = id;
+        this.title = title;
+        this.desc = desc;
+        this.people = people;
+        this.status = status;
+    }
+}
 class ProjectManager {
     constructor() {
         this.listeners = [];
@@ -15,12 +29,7 @@ class ProjectManager {
         this.listeners.push(listenerFn);
     }
     addProject(title, desc, peopleNum) {
-        const newProject = {
-            id: Math.random().toString(),
-            title,
-            desc,
-            peopleNum,
-        };
+        const newProject = new Project(Math.random().toString(), title, desc, peopleNum, ProjectStatus.Active);
         this.projects.push(newProject);
         for (const listenerFn of this.listeners) {
             listenerFn(this.projects.slice());
@@ -36,12 +45,12 @@ function validate(validatableInput) {
     if (validatableInput.minLength != null &&
         typeof validatableInput.value === 'string') {
         isValid =
-            isValid && validatableInput.value.length > validatableInput.minLength;
+            isValid && validatableInput.value.length >= validatableInput.minLength;
     }
     if (validatableInput.maxLength != null &&
         typeof validatableInput.value === 'string') {
         isValid =
-            isValid && validatableInput.value.length < validatableInput.maxLength;
+            isValid && validatableInput.value.length <= validatableInput.maxLength;
     }
     if (validatableInput.min != null &&
         typeof validatableInput.min === 'number') {
@@ -112,7 +121,7 @@ class ProjectInput {
         const descValidatable = {
             value: enteredDesc,
             req: true,
-            minLength: 2,
+            minLength: 1,
         };
         const peopleValidatable = {
             value: +enteredPeople,

@@ -1,8 +1,24 @@
+//Project Type
+
+enum ProjectStatus {
+  Active,
+  Finished,
+}
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public desc: string,
+    public people: number,
+    public status: ProjectStatus
+  ) {}
+}
+
 //Project state managmenet
 
 class ProjectManager {
   private listeners: any[] = []; // need 2 listeners, one for active and fnished projects
-  private projects: any[] = [];
+  private projects: Project[] = [];
   private static instance: ProjectManager;
   private constructor() {}
 
@@ -19,12 +35,13 @@ class ProjectManager {
   }
 
   addProject(title: string, desc: string, peopleNum: number) {
-    const newProject = {
-      id: Math.random().toString(),
+    const newProject = new Project(
+      Math.random().toString(),
       title,
       desc,
       peopleNum,
-    };
+      ProjectStatus.Active
+    );
     this.projects.push(newProject);
     for (const listenerFn of this.listeners) {
       listenerFn(this.projects.slice());
@@ -57,7 +74,7 @@ function validate(validatableInput: Validatable) {
     typeof validatableInput.value === 'string'
   ) {
     isValid =
-      isValid && validatableInput.value.length > validatableInput.minLength;
+      isValid && validatableInput.value.length >= validatableInput.minLength;
   }
 
   if (
@@ -65,7 +82,7 @@ function validate(validatableInput: Validatable) {
     typeof validatableInput.value === 'string'
   ) {
     isValid =
-      isValid && validatableInput.value.length < validatableInput.maxLength;
+      isValid && validatableInput.value.length <= validatableInput.maxLength;
   }
 
   if (
@@ -88,7 +105,7 @@ class ProjectList {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
-  assignedProject: any[];
+  assignedProject: Project[];
 
   constructor(private type: 'active' | 'finished') {
     console.log('creating projectList');
@@ -187,7 +204,7 @@ class ProjectInput {
     const descValidatable: Validatable = {
       value: enteredDesc,
       req: true,
-      minLength: 2,
+      minLength: 1,
     };
     const peopleValidatable: Validatable = {
       value: +enteredPeople,
