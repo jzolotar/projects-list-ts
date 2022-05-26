@@ -16,8 +16,9 @@ class Project {
 
 //Project state managmenet
 
+type Listener = (items: Project[]) => void;
 class ProjectManager {
-  private listeners: any[] = []; // need 2 listeners, one for active and fnished projects
+  private listeners: Listener[] = []; // need 2 listeners, one for active and fnished projects
   private projects: Project[] = [];
   private static instance: ProjectManager;
   private constructor() {}
@@ -30,7 +31,7 @@ class ProjectManager {
     return this.instance;
   }
 
-  addListener(listenerFn: Function) {
+  addListener(listenerFn: Listener) {
     this.listeners.push(listenerFn);
   }
 
@@ -123,7 +124,7 @@ class ProjectList {
     this.element = importedNote.firstElementChild as HTMLElement;
     this.element.id = `${this.type}-projects`;
 
-    projectManager.addListener((projects: any[]) => {
+    projectManager.addListener((projects: Project[]) => {
       this.assignedProject = projects;
       this.renderProjects();
     });
