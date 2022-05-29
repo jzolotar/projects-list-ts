@@ -77,26 +77,12 @@ class Component {
         this.hostElement.insertAdjacentElement(insertAtBegging ? 'afterbegin' : 'beforeend', this.element);
     }
 }
-class ProjectList {
+class ProjectList extends Component {
     constructor(type) {
+        super('project-list', 'app', false, `${type}=projects`);
         this.type = type;
-        this.templateElement = document.getElementById('project-list');
-        this.hostElement = document.getElementById('app');
         this.assignedProject = [];
-        const importedNote = document.importNode(this.templateElement.content, true);
-        this.element = importedNote.firstElementChild;
-        this.element.id = `${this.type}-projects`;
-        projectManager.addListener((projects) => {
-            const newProjects = projects.filter((project) => {
-                if (this.type === 'active') {
-                    return project.status === ProjectStatus.Active;
-                }
-                return project.status === ProjectStatus.Finished;
-            });
-            this.assignedProject = newProjects;
-            this.renderProjects();
-        });
-        this.attach();
+        this.configure();
         this.renderContent();
     }
     renderProjects() {
@@ -108,14 +94,23 @@ class ProjectList {
             listEl === null || listEl === void 0 ? void 0 : listEl.appendChild(listItem);
         }
     }
+    configure() {
+        projectManager.addListener((projects) => {
+            const newProjects = projects.filter((project) => {
+                if (this.type === 'active') {
+                    return project.status === ProjectStatus.Active;
+                }
+                return project.status === ProjectStatus.Finished;
+            });
+            this.assignedProject = newProjects;
+            this.renderProjects();
+        });
+    }
     renderContent() {
         const listId = `${this.type}-projects-list`;
         this.element.querySelector('ul').id = listId;
         this.element.querySelector('h2').textContent =
             this.type.toUpperCase() + ' PROJECTS';
-    }
-    attach() {
-        this.hostElement.insertAdjacentElement('beforeend', this.element);
     }
 }
 class ProjectInput {
