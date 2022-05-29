@@ -16,12 +16,20 @@ class Project {
 
 //Project state managmenet
 
-type Listener = (items: Project[]) => void;
-class ProjectManager {
-  private listeners: Listener[] = []; // need 2 listeners, one for active and fnished projects
+type Listener<T> = (items: T[]) => void;
+
+class State<T> {
+  protected listeners: Listener<T>[] = [];
+  addListener(listenerFn: Listener<T>) {
+    this.listeners.push(listenerFn);
+  }
+}
+class ProjectManager extends State<Project> {
   private projects: Project[] = [];
   private static instance: ProjectManager;
-  private constructor() {}
+  private constructor() {
+    super();
+  }
 
   static getInstance() {
     if (this.instance) {
@@ -29,10 +37,6 @@ class ProjectManager {
     }
     this.instance = new ProjectManager();
     return this.instance;
-  }
-
-  addListener(listenerFn: Listener) {
-    this.listeners.push(listenerFn);
   }
 
   addProject(title: string, desc: string, peopleNum: number) {
@@ -148,7 +152,7 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
   //private type
 
   constructor(private type: 'active' | 'finished') {
-    super('project-list', 'app', false, `${type}=projects`);
+    super('project-list', 'app', false, `${type}-projects`);
 
     this.assignedProject = [];
 

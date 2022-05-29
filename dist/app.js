@@ -13,9 +13,17 @@ class Project {
         this.status = status;
     }
 }
-class ProjectManager {
+class State {
     constructor() {
         this.listeners = [];
+    }
+    addListener(listenerFn) {
+        this.listeners.push(listenerFn);
+    }
+}
+class ProjectManager extends State {
+    constructor() {
+        super();
         this.projects = [];
     }
     static getInstance() {
@@ -24,9 +32,6 @@ class ProjectManager {
         }
         this.instance = new ProjectManager();
         return this.instance;
-    }
-    addListener(listenerFn) {
-        this.listeners.push(listenerFn);
     }
     addProject(title, desc, peopleNum) {
         const newProject = new Project(Math.random().toString(), title, desc, peopleNum, ProjectStatus.Active);
@@ -79,7 +84,7 @@ class Component {
 }
 class ProjectList extends Component {
     constructor(type) {
-        super('project-list', 'app', false, `${type}=projects`);
+        super('project-list', 'app', false, `${type}-projects`);
         this.type = type;
         this.assignedProject = [];
         this.configure();
